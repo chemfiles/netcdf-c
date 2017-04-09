@@ -1563,7 +1563,7 @@ ENDIF()
 #####
 # Build doxygen documentation, if need be.
 #####
-ADD_SUBDIRECTORY(docs)
+# ADD_SUBDIRECTORY(docs)
 
 ##
 # Brute force, grab all of the dlls from the depency directory,
@@ -1658,7 +1658,7 @@ INSTALL(PROGRAMS ${netCDF_BINARY_DIR}/nc-config
 ##
 # Print the configuration summary
 ##
-print_conf_summary()
+# print_conf_summary()
 
 # Enable Makedist files.
 ADD_MAKEDIST()
@@ -1711,9 +1711,9 @@ CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"
 # Read in settings file, print out.
 # Avoid using system-specific calls so that this
 # might also work on Windows.
-FILE(READ "${CMAKE_CURRENT_BINARY_DIR}/libnetcdf.settings"
-  LIBNETCDF_SETTINGS)
-MESSAGE(${LIBNETCDF_SETTINGS})
+# FILE(READ "${CMAKE_CURRENT_BINARY_DIR}/libnetcdf.settings"
+#   LIBNETCDF_SETTINGS)
+# MESSAGE(${LIBNETCDF_SETTINGS})
 
 # Install libnetcdf.settings file into same location
 # as the libraries.
