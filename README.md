@@ -1,3 +1,9 @@
+This is a fork of [netcdf-c](https://github.com/Unidata/netcdf-c), used in
+[chemfiles](https://github.com/chemfiles/chemfiles) to read Amber NetCDF files.
+
+This repository does not accept bug report or pull requests. Please refer to the
+main netcdf repository.
+
 # Unidata NetCDF
 
 [![Build Status](https://travis-ci.org/Unidata/netcdf-c.svg?branch=master)](https://travis-ci.org/Unidata/netcdf-c)
