@@ -82,7 +82,7 @@ IF(MSVC)
 ENDIF()
 
 #Add custom CMake Module
-SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules/"
+SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules/"
   CACHE INTERNAL "Location of our custom CMake modules.")
 
 # auto-configure style checks, other CMake modules.
@@ -159,7 +159,7 @@ ENABLE_TESTING()
 INCLUDE(CTest)
 
 # Copy the CTest customization file into binary directory, as required.
-FILE(COPY ${CMAKE_SOURCE_DIR}/CTestCustom.cmake DESTINATION ${CMAKE_BINARY_DIR})
+FILE(COPY ${PROJECT_SOURCE_DIR}/CTestCustom.cmake DESTINATION ${CMAKE_BINARY_DIR})
 
 # Set Memory test program for non-MSVC based builds.
 # Assume valgrind for now.
@@ -252,10 +252,10 @@ ENDIF()
 #####
 # System inspection checks
 #####
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include)
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/oc2)
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/libsrc)
-SET(CMAKE_REQUIRED_INCLUDES ${CMAKE_SOURCE_DIR}/libsrc)
+INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
+INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/oc2)
+INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/libsrc)
+# SET(CMAKE_REQUIRED_INCLUDES ${PROJECT_SOURCE_DIR}/libsrc)
 
 ################################
 # End Compiler Configuration
@@ -343,7 +343,6 @@ OPTION(ENABLE_MMAP "Use MMAP." OFF)
 IF(ENABLE_MMAP)
   CHECK_FUNCTION_EXISTS(mremap  HAVE_MREMAP)
   IF(NOT HAVE_MREMAP)
-    MESSAGE(WARNING "mremap not found: disabling MMAP support.")
     SET(ENABLE_MMAP OFF)
   ELSE()
     SET(HAVE_MMAP ON)
@@ -522,210 +521,210 @@ ENDIF()
 # * HDF5_INCLUDE_DIR
 # *
 ##
-OPTION(USE_HDF5 "Use HDF5." ${ENABLE_NETCDF_4})
-IF(USE_HDF5 OR ENABLE_NETCDF_4)
-  SET(USE_HDF5 ON)
-  SET(USE_NETCDF4 ON)
-  ##
-  # Accommodate developers who have hdf5 libraries and
-  # headers on their system, but do not have a the hdf
-  # .cmake files.  If this is the case, they should
-  # specify HDF5_HL_LIB, HDF5_LIB, HDF5_INCLUDE_DIR manually.
-  ##
-  IF(HDF5_C_LIBRARY AND HDF5_HL_LIBRARY AND HDF5_INCLUDE_DIR)
-    SET(HDF5_LIBRARIES ${HDF5_C_LIBRARY} ${HDF5_HL_LIBRARY})
-    SET(HDF5_C_LIBRARIES ${HDF5_C_LIBRARY})
-    SET(HDF5_HL_LIBRARIES ${HDF5_HL_LIBRARY})
-    INCLUDE_DIRECTORIES(${HDF5_INCLUDE_DIR})
-    MESSAGE(STATUS "Using HDF5 C Library: ${HDF5_C_LIBRARY}")
-    MESSAGE(STATUS "Using HDF5 HL LIbrary: ${HDF5_HL_LIBRARY}")
-  ELSE(HDF5_C_LIBRARY AND HDF5_HL_LIBRARY AND HDF5_INCLUDE_DIR) # We are seeking out HDF5 with Find Package.
-    ###
-    # For now we assume that if we are building netcdf
-    # as a shared library, we will use hdf5 as a shared
-    # library. If we are building netcdf statically,
-    # we will use a static library.  This can be toggled
-    # by explicitely modifying NC_FIND_SHARED_LIBS.
-    ##
-    IF(NC_FIND_SHARED_LIBS)
-      SET(NC_HDF5_LINK_TYPE "shared")
-      SET(NC_HDF5_LINK_TYPE_UPPER "SHARED")
-      ADD_DEFINITIONS(-DH5_BUILT_AS_DYNAMIC_LIB)
-    ELSE(NC_FIND_SHARED_LIBS)
-      SET(NC_HDF5_LINK_TYPE "static")
-      SET(NC_HDF5_LINK_TYPE_UPPER "STATIC")
-      ADD_DEFINITIONS(-DH5_BUILT_AS_STATIC_LIB)
-    ENDIF(NC_FIND_SHARED_LIBS)
-
-    #####
-    # First, find the C and HL libraries.
-    #
-    # This has been updated to reflect what is in the hdf5
-    # examples, even though the previous version of what we
-    # had worked.
-    #####
-    IF(MSVC)
-      SET(SEARCH_PACKAGE_NAME ${HDF5_PACKAGE_NAME})
-      FIND_PACKAGE(HDF5 NAMES ${SEARCH_PACKAGE_NAME} COMPONENTS C HL NO_MODULES REQUIRED ${NC_HDF5_LINK_TYPE})
-    ELSE(MSVC)
-      FIND_PACKAGE(HDF5 COMPONENTS C HL REQUIRED)
-    ENDIF(MSVC)
-
-    ##
-    # Next, check the HDF5 version. This will inform which
-    # HDF5 variables we need to munge.
-    ##
-
-    ##
-    # Assert HDF5 version meets minimum required version.
-    ##
-    SET(HDF5_VERSION_REQUIRED 1.8.10)
-
-    IF(HDF5_VERSION_STRING AND NOT HDF5_VERSION)
-      SET(HDF5_VERSION ${HDF5_VERSION_STRING})
-    ENDIF()
-
-    IF("${HDF5_VERSION}" STREQUAL "")
-      MESSAGE(STATUS "Unable to determine hdf5 version.  NetCDF requires at least version ${HDF5_VERSION_REQUIRED}")
-    ELSE()
-      IF(${HDF5_VERSION} VERSION_LESS ${HDF5_VERSION_REQUIRED})
-        MESSAGE(FATAL_ERROR
-	      "netCDF requires at least HDF5 ${HDF5_VERSION_REQUIRED}. Found ${HDF5_VERSION}.")
-      ELSE()
-        MESSAGE(STATUS "Found HDF5 libraries version ${HDF5_VERSION}")
-      ENDIF()
-    ENDIF()
-
-    ##
-    # Include the HDF5 include directory.
-    ##
-    IF(HDF5_INCLUDE_DIRS AND NOT HDF5_INCLUDE_DIR)
-      SET(HDF5_INCLUDE_DIR ${HDF5_INCLUDE_DIRS})
-    ENDIF()
-    MESSAGE(STATUS "Using HDF5 include dir: ${HDF5_INCLUDE_DIR}")
-    INCLUDE_DIRECTORIES(${HDF5_INCLUDE_DIR})
-
-    ###
-    # This is the block where we figure out what the appropriate
-    # variables are, and we ensure that we end up with
-    # HDF5_C_LIBRARY, HDF5_HL_LIBRARY and HDF5_LIBRARIES.
-    ###
-    IF(MSVC)
-      ##
-      # HDF5 1.8.15 defined HDF5_LIBRARIES.
-      ##
-      IF(${HDF5_VERSION} VERSION_LESS "1.8.16")
-        SET(HDF5_C_LIBRARY hdf5)
-      ENDIF(${HDF5_VERSION} VERSION_LESS "1.8.16")
-
-      IF(${HDF5_VERSION} VERSION_GREATER "1.8.15")
-        IF(NOT HDF5_LIBRARIES AND HDF5_C_${NC_HDF5_LINK_TYPE_UPPER}_LIBRARY AND HDF5_HL_${NC_HDF5_LINK_TYPE_UPPER}_LIBRARY)
-          SET(HDF5_C_LIBRARY ${HDF5_C_${NC_HDF5_LINK_TYPE_UPPER}_LIBRARY})
-          SET(HDF5_HL_LIBRARY ${HDF5_HL_${NC_HDF5_LINK_TYPE_UPPER}_LIBRARY})
-      	  SET(HDF5_LIBRARIES ${HDF5_C_${NC_HDF5_LINK_TYPE_UPPER}_LIBRARY} ${HDF5_HL_${NC_HDF5_LINK_TYPE_UPPER}_LIBRARY})
-        ENDIF()
-      ENDIF(${HDF5_VERSION} VERSION_GREATER "1.8.15")
-
-    ELSE(MSVC)
-
-      # Depending on the install, either HDF5_hdf_library or
-      # HDF5_C_LIBRARIES may be defined.  We must check for either.
-      IF(HDF5_C_LIBRARIES AND NOT HDF5_hdf5_LIBRARY)
-        SET(HDF5_hdf5_LIBRARY ${HDF5_C_LIBRARIES})
-      ENDIF()
-
-    ENDIF(MSVC)
-  ENDIF(HDF5_C_LIBRARY AND HDF5_HL_LIBRARY AND HDF5_INCLUDE_DIR)
-
-  ###
-  # The following options are not used in Windows.
-  ###
-  IF(NOT MSVC)
-    # Find out if HDF5 was built with parallel support.
-    # Do that by checking for the targets H5Pget_fapl_mpiposx and
-    # H5Pget_fapl_mpio in ${HDF5_LIB}.
-    CHECK_LIBRARY_EXISTS(hdf5 H5Pget_fapl_mpiposix "" HDF5_IS_PARALLEL_MPIPOSIX)
-    CHECK_LIBRARY_EXISTS(hdf5 H5Pget_fapl_mpio "" HDF5_IS_PARALLEL_MPIO)
-    IF(HDF5_IS_PARALLEL_MPIPOSIX OR HDF5_IS_PARALLEL_MPIO)
-      SET(HDF5_PARALLEL ON)
-    ELSE()
-      SET(HDF5_PARALLEL OFF)
-    ENDIF()
-
-    IF(HDF5_IS_PARALLEL_MPIO)
-      SET(USE_PARALLEL_MPIO ON)
-    ENDIF()
-
-    IF(HDF5_IS_PARALLEL_MPIPOSIX)
-      SET(USE_PARALLEL_POSIX ON)
-    ENDIF()
-
-    OPTION(ENABLE_DYNAMIC_LOADING "Enable Dynamic Loading" OFF)
-    IF(ENABLE_DYNAMIC_LOADING)
-      SET(USE_LIBDL ON CACHE BOOL "")
-    ENDIF()
-    SET(HDF5_C_LIBRARY hdf5)
-  ENDIF(NOT MSVC)
-
-  #Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip.
-  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY} H5P_SZIP "" USE_SZIP)
-  IF(USE_SZIP)
-    FIND_LIBRARY(SZIP NAMES szip sz)
-    IF(SZIP)
-      SET(SZIP_LIBRARY ${SZIP})
-      SET(CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES} ${SZIP})
-    ELSE()
-      MESSAGE(FATAL_ERROR "HDF5 Requires SZIP, but cannot find libszip or libsz.")
-    ENDIF()
-  ENDIF()
-
-  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY} H5free_memory "" HDF5_HAS_H5FREE)
-  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY} H5Pset_libver_bounds "" HDF5_HAS_LIBVER_BOUNDS)
-
-  IF(HDF5_PARALLEL)
-	SET(HDF5_CC h5pcc)
-  ELSE()
-	SET(HDF5_CC h5cc)
-  ENDIF()
-
-  # Starting with hdf5 1.8.11, dynamic loading is an option.
-  # In case hdf5 has a dependency on libdl, the user must specify
-  # -DENABLE_DYNAMIC_LOADING=ON when configuring netcdf.
-  IF(USE_LIBDL)
-    FIND_LIBRARY(LIBDL NAMES dl dld)
-    FIND_PATH(LIBDL_INCLUDE_DIR dlfcn.h)
-    IF(NOT LIBDL)
-      MESSAGE(ERROR "Cannot find libdl, but dynamic loading was specified.")
-    ENDIF()
-    IF(NOT LIBDL_INCLUDE_DIR)
-      MESSAGE(ERROR "Cannot find dlfcn.h, but dynamic loading was specified.")
-    ENDIF()
-    MESSAGE(STATUS "Found libdl: ${LIBDL}")
-    SET(HAVE_LIBDL ON)
-    INCLUDE_DIRECTORIES(${LIBDL_INCLUDE_DIR})
-  ENDIF()
-
-  SET(H5_USE_16_API 1)
-  OPTION(NC_ENABLE_HDF_16_API "Enable HDF5 1.6.x Compatibility(Required)" OFF)
-  IF(NOT NC_ENABLE_HDF_16_API)
-    SET(H5_USE_16_API 0)
-  ENDIF()
-
-  # Check for ZLib, but only if using HDF5.
-  FIND_PACKAGE(ZLIB)
-  IF(NOT ZLIB_LIBRARY)
-    MESSAGE(FATAL_ERROR "HDF5 Support specified, cannot find ZLib.")
-  ENDIF()
-  SET(USE_ZLIB ON)
-  INCLUDE_DIRECTORIES(${ZLIB_INCLUDE_DIRS})
-
-ENDIF(USE_HDF5 OR ENABLE_NETCDF_4)
+# OPTION(USE_HDF5 "Use HDF5." OFF)
+# IF(USE_HDF5 OR ENABLE_NETCDF_4)
+#   SET(USE_HDF5 ON)
+#   SET(USE_NETCDF4 ON)
+#   ##
+#   # Accommodate developers who have hdf5 libraries and
+#   # headers on their system, but do not have a the hdf
+#   # .cmake files.  If this is the case, they should
+#   # specify HDF5_HL_LIB, HDF5_LIB, HDF5_INCLUDE_DIR manually.
+#   ##
+#   IF(HDF5_C_LIBRARY AND HDF5_HL_LIBRARY AND HDF5_INCLUDE_DIR)
+#     SET(HDF5_LIBRARIES ${HDF5_C_LIBRARY} ${HDF5_HL_LIBRARY})
+#     SET(HDF5_C_LIBRARIES ${HDF5_C_LIBRARY})
+#     SET(HDF5_HL_LIBRARIES ${HDF5_HL_LIBRARY})
+#     INCLUDE_DIRECTORIES(${HDF5_INCLUDE_DIR})
+#     MESSAGE(STATUS "Using HDF5 C Library: ${HDF5_C_LIBRARY}")
+#     MESSAGE(STATUS "Using HDF5 HL LIbrary: ${HDF5_HL_LIBRARY}")
+#   ELSE(HDF5_C_LIBRARY AND HDF5_HL_LIBRARY AND HDF5_INCLUDE_DIR) # We are seeking out HDF5 with Find Package.
+#     ###
+#     # For now we assume that if we are building netcdf
+#     # as a shared library, we will use hdf5 as a shared
+#     # library. If we are building netcdf statically,
+#     # we will use a static library.  This can be toggled
+#     # by explicitely modifying NC_FIND_SHARED_LIBS.
+#     ##
+#     IF(NC_FIND_SHARED_LIBS)
+#       SET(NC_HDF5_LINK_TYPE "shared")
+#       SET(NC_HDF5_LINK_TYPE_UPPER "SHARED")
+#       ADD_DEFINITIONS(-DH5_BUILT_AS_DYNAMIC_LIB)
+#     ELSE(NC_FIND_SHARED_LIBS)
+#       SET(NC_HDF5_LINK_TYPE "static")
+#       SET(NC_HDF5_LINK_TYPE_UPPER "STATIC")
+#       ADD_DEFINITIONS(-DH5_BUILT_AS_STATIC_LIB)
+#     ENDIF(NC_FIND_SHARED_LIBS)
+#
+#     #####
+#     # First, find the C and HL libraries.
+#     #
+#     # This has been updated to reflect what is in the hdf5
+#     # examples, even though the previous version of what we
+#     # had worked.
+#     #####
+#     IF(MSVC)
+#       SET(SEARCH_PACKAGE_NAME ${HDF5_PACKAGE_NAME})
+#       FIND_PACKAGE(HDF5 NAMES ${SEARCH_PACKAGE_NAME} COMPONENTS C HL NO_MODULES REQUIRED ${NC_HDF5_LINK_TYPE})
+#     ELSE(MSVC)
+#       FIND_PACKAGE(HDF5 COMPONENTS C HL REQUIRED)
+#     ENDIF(MSVC)
+#
+#     ##
+#     # Next, check the HDF5 version. This will inform which
+#     # HDF5 variables we need to munge.
+#     ##
+#
+#     ##
+#     # Assert HDF5 version meets minimum required version.
+#     ##
+#     SET(HDF5_VERSION_REQUIRED 1.8.10)
+#
+#     IF(HDF5_VERSION_STRING AND NOT HDF5_VERSION)
+#       SET(HDF5_VERSION ${HDF5_VERSION_STRING})
+#     ENDIF()
+#
+#     IF("${HDF5_VERSION}" STREQUAL "")
+#       MESSAGE(STATUS "Unable to determine hdf5 version.  NetCDF requires at least version ${HDF5_VERSION_REQUIRED}")
+#     ELSE()
+#       IF(${HDF5_VERSION} VERSION_LESS ${HDF5_VERSION_REQUIRED})
+#         MESSAGE(FATAL_ERROR
+# 	      "netCDF requires at least HDF5 ${HDF5_VERSION_REQUIRED}. Found ${HDF5_VERSION}.")
+#       ELSE()
+#         MESSAGE(STATUS "Found HDF5 libraries version ${HDF5_VERSION}")
+#       ENDIF()
+#     ENDIF()
+#
+#     ##
+#     # Include the HDF5 include directory.
+#     ##
+#     IF(HDF5_INCLUDE_DIRS AND NOT HDF5_INCLUDE_DIR)
+#       SET(HDF5_INCLUDE_DIR ${HDF5_INCLUDE_DIRS})
+#     ENDIF()
+#     MESSAGE(STATUS "Using HDF5 include dir: ${HDF5_INCLUDE_DIR}")
+#     INCLUDE_DIRECTORIES(${HDF5_INCLUDE_DIR})
+#
+#     ###
+#     # This is the block where we figure out what the appropriate
+#     # variables are, and we ensure that we end up with
+#     # HDF5_C_LIBRARY, HDF5_HL_LIBRARY and HDF5_LIBRARIES.
+#     ###
+#     IF(MSVC)
+#       ##
+#       # HDF5 1.8.15 defined HDF5_LIBRARIES.
+#       ##
+#       IF(${HDF5_VERSION} VERSION_LESS "1.8.16")
+#         SET(HDF5_C_LIBRARY hdf5)
+#       ENDIF(${HDF5_VERSION} VERSION_LESS "1.8.16")
+#
+#       IF(${HDF5_VERSION} VERSION_GREATER "1.8.15")
+#         IF(NOT HDF5_LIBRARIES AND HDF5_C_${NC_HDF5_LINK_TYPE_UPPER}_LIBRARY AND HDF5_HL_${NC_HDF5_LINK_TYPE_UPPER}_LIBRARY)
+#           SET(HDF5_C_LIBRARY ${HDF5_C_${NC_HDF5_LINK_TYPE_UPPER}_LIBRARY})
+#           SET(HDF5_HL_LIBRARY ${HDF5_HL_${NC_HDF5_LINK_TYPE_UPPER}_LIBRARY})
+#       	  SET(HDF5_LIBRARIES ${HDF5_C_${NC_HDF5_LINK_TYPE_UPPER}_LIBRARY} ${HDF5_HL_${NC_HDF5_LINK_TYPE_UPPER}_LIBRARY})
+#         ENDIF()
+#       ENDIF(${HDF5_VERSION} VERSION_GREATER "1.8.15")
+#
+#     ELSE(MSVC)
+#
+#       # Depending on the install, either HDF5_hdf_library or
+#       # HDF5_C_LIBRARIES may be defined.  We must check for either.
+#       IF(HDF5_C_LIBRARIES AND NOT HDF5_hdf5_LIBRARY)
+#         SET(HDF5_hdf5_LIBRARY ${HDF5_C_LIBRARIES})
+#       ENDIF()
+#
+#     ENDIF(MSVC)
+#   ENDIF(HDF5_C_LIBRARY AND HDF5_HL_LIBRARY AND HDF5_INCLUDE_DIR)
+#
+#   ###
+#   # The following options are not used in Windows.
+#   ###
+#   IF(NOT MSVC)
+#     # Find out if HDF5 was built with parallel support.
+#     # Do that by checking for the targets H5Pget_fapl_mpiposx and
+#     # H5Pget_fapl_mpio in ${HDF5_LIB}.
+#     CHECK_LIBRARY_EXISTS(hdf5 H5Pget_fapl_mpiposix "" HDF5_IS_PARALLEL_MPIPOSIX)
+#     CHECK_LIBRARY_EXISTS(hdf5 H5Pget_fapl_mpio "" HDF5_IS_PARALLEL_MPIO)
+#     IF(HDF5_IS_PARALLEL_MPIPOSIX OR HDF5_IS_PARALLEL_MPIO)
+#       SET(HDF5_PARALLEL ON)
+#     ELSE()
+#       SET(HDF5_PARALLEL OFF)
+#     ENDIF()
+#
+#     IF(HDF5_IS_PARALLEL_MPIO)
+#       SET(USE_PARALLEL_MPIO ON)
+#     ENDIF()
+#
+#     IF(HDF5_IS_PARALLEL_MPIPOSIX)
+#       SET(USE_PARALLEL_POSIX ON)
+#     ENDIF()
+#
+#     OPTION(ENABLE_DYNAMIC_LOADING "Enable Dynamic Loading" OFF)
+#     IF(ENABLE_DYNAMIC_LOADING)
+#       SET(USE_LIBDL ON CACHE BOOL "")
+#     ENDIF()
+#     SET(HDF5_C_LIBRARY hdf5)
+#   ENDIF(NOT MSVC)
+#
+#   #Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip.
+#   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY} H5P_SZIP "" USE_SZIP)
+#   IF(USE_SZIP)
+#     FIND_LIBRARY(SZIP NAMES szip sz)
+#     IF(SZIP)
+#       SET(SZIP_LIBRARY ${SZIP})
+#       SET(CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES} ${SZIP})
+#     ELSE()
+#       MESSAGE(FATAL_ERROR "HDF5 Requires SZIP, but cannot find libszip or libsz.")
+#     ENDIF()
+#   ENDIF()
+#
+#   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY} H5free_memory "" HDF5_HAS_H5FREE)
+#   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY} H5Pset_libver_bounds "" HDF5_HAS_LIBVER_BOUNDS)
+#
+#   IF(HDF5_PARALLEL)
+# 	SET(HDF5_CC h5pcc)
+#   ELSE()
+# 	SET(HDF5_CC h5cc)
+#   ENDIF()
+#
+#   # Starting with hdf5 1.8.11, dynamic loading is an option.
+#   # In case hdf5 has a dependency on libdl, the user must specify
+#   # -DENABLE_DYNAMIC_LOADING=ON when configuring netcdf.
+#   IF(USE_LIBDL)
+#     FIND_LIBRARY(LIBDL NAMES dl dld)
+#     FIND_PATH(LIBDL_INCLUDE_DIR dlfcn.h)
+#     IF(NOT LIBDL)
+#       MESSAGE(ERROR "Cannot find libdl, but dynamic loading was specified.")
+#     ENDIF()
+#     IF(NOT LIBDL_INCLUDE_DIR)
+#       MESSAGE(ERROR "Cannot find dlfcn.h, but dynamic loading was specified.")
+#     ENDIF()
+#     MESSAGE(STATUS "Found libdl: ${LIBDL}")
+#     SET(HAVE_LIBDL ON)
+#     INCLUDE_DIRECTORIES(${LIBDL_INCLUDE_DIR})
+#   ENDIF()
+#
+#   SET(H5_USE_16_API 1)
+#   OPTION(NC_ENABLE_HDF_16_API "Enable HDF5 1.6.x Compatibility(Required)" OFF)
+#   IF(NOT NC_ENABLE_HDF_16_API)
+#     SET(H5_USE_16_API 0)
+#   ENDIF()
+#
+#   # Check for ZLib, but only if using HDF5.
+#   FIND_PACKAGE(ZLIB)
+#   IF(NOT ZLIB_LIBRARY)
+#     MESSAGE(FATAL_ERROR "HDF5 Support specified, cannot find ZLib.")
+#   ENDIF()
+#   SET(USE_ZLIB ON)
+#   INCLUDE_DIRECTORIES(${ZLIB_INCLUDE_DIRS})
+#
+# ENDIF(USE_HDF5 OR ENABLE_NETCDF_4)
 
 
 # Option to Build DAP Client
 OPTION(ENABLE_DAP "Enable DAP Client." OFF)
 IF(ENABLE_DAP)
-  SET(USE_DAP ON)
+  SET(USE_DAP OFF)
   FIND_PACKAGE(CURL)
   IF(NOT CURL_LIBRARY)
     MESSAGE(FATAL_ERROR "DAP Support specified, CURL libraries are not found.")
@@ -773,7 +772,7 @@ ENDIF()
 # Check for the math library so it can be explicitly linked.
 IF(NOT WIN32)
   FIND_LIBRARY(HAVE_LIBM NAMES math m libm)
-  MESSAGE(STATUS "Found Math library: ${HAVE_LIBM}")
+  # MESSAGE(STATUS "Found Math library: ${HAVE_LIBM}")
   IF(NOT HAVE_LIBM)
     MESSAGE(FATAL_ERROR "Unable to find the math library.")
   ENDIF()
@@ -1406,18 +1405,18 @@ ENDMACRO()
 # Determine if 'bash' is on the system.
 ##
 
-FIND_PROGRAM(HAVE_BASH NAMES bash)
-IF(HAVE_BASH)
-  MESSAGE(STATUS "Found bash: ${HAVE_BASH}")
-ELSE()
-  MESSAGE(STATUS "Bash shell not found; disabling shell script tests.")
-ENDIF()
+# FIND_PROGRAM(HAVE_BASH NAMES bash)
+# IF(HAVE_BASH)
+#   MESSAGE(STATUS "Found bash: ${HAVE_BASH}")
+# ELSE()
+#   MESSAGE(STATUS "Bash shell not found; disabling shell script tests.")
+# ENDIF()
 
-MACRO(add_sh_test prefix F)
-  IF(HAVE_BASH)
-    ADD_TEST(${prefix}_${F} bash "-c" "export srcdir=${CMAKE_CURRENT_SOURCE_DIR};export TOPSRCDIR=${CMAKE_SOURCE_DIR};${CMAKE_CURRENT_BINARY_DIR}/${F}.sh")
-  ENDIF()
-ENDMACRO()
+# MACRO(add_sh_test prefix F)
+#   IF(HAVE_BASH)
+#     ADD_TEST(${prefix}_${F} bash "-c" "export srcdir=${CMAKE_CURRENT_SOURCE_DIR};export TOPSRCDIR=${CMAKE_SOURCE_DIR};${CMAKE_CURRENT_BINARY_DIR}/${F}.sh")
+#   ENDIF()
+# ENDMACRO()
 
 # Macro for replacing '/MD' with '/MT'.
 # Used only on Windows, /MD tells VS to use the shared
@@ -1525,32 +1524,32 @@ IF(BUILD_DLL)
 ENDIF()
 
 # Enable Utilities.
-IF(BUILD_UTILITIES)
-  INCLUDE_DIRECTORIES(ncdump)
-  ADD_SUBDIRECTORY(ncgen)
-  ADD_SUBDIRECTORY(ncgen3)
-  ADD_SUBDIRECTORY(ncdump)
-ENDIF()
+# IF(BUILD_UTILITIES)
+#   INCLUDE_DIRECTORIES(ncdump)
+#   ADD_SUBDIRECTORY(ncgen)
+#   ADD_SUBDIRECTORY(ncgen3)
+#   ADD_SUBDIRECTORY(ncdump)
+# ENDIF()
 
 # Enable tests
-IF(ENABLE_TESTS)
-  IF(ENABLE_V2_API)
-    ADD_SUBDIRECTORY(nctest)
-  ENDIF()
-  ADD_SUBDIRECTORY(nc_test)
-  IF(USE_NETCDF4)
-    INCLUDE_DIRECTORIES(h5_test)
-    ADD_SUBDIRECTORY(nc_test4)
-    ADD_SUBDIRECTORY(h5_test)
-  ENDIF()
-  IF(USE_DAP AND ENABLE_DAP_REMOTE_TESTS)
-    ADD_SUBDIRECTORY(ncdap_test)
-  ENDIF()
-
-  IF(ENABLE_EXAMPLES)
-    ADD_SUBDIRECTORY(examples)
-  ENDIF()
-ENDIF()
+# IF(ENABLE_TESTS)
+#   IF(ENABLE_V2_API)
+#     ADD_SUBDIRECTORY(nctest)
+#   ENDIF()
+#   ADD_SUBDIRECTORY(nc_test)
+#   IF(USE_NETCDF4)
+#     INCLUDE_DIRECTORIES(h5_test)
+#     ADD_SUBDIRECTORY(nc_test4)
+#     ADD_SUBDIRECTORY(h5_test)
+#   ENDIF()
+#   IF(USE_DAP AND ENABLE_DAP_REMOTE_TESTS)
+#     ADD_SUBDIRECTORY(ncdap_test)
+#   ENDIF()
+#
+#   IF(ENABLE_EXAMPLES)
+#     ADD_SUBDIRECTORY(examples)
+#   ENDIF()
+# ENDIF()
 
 # Code to generate an export header
 #GENERATE_EXPORT_HEADER(netcdf
@@ -1661,8 +1660,8 @@ INSTALL(PROGRAMS ${netCDF_BINARY_DIR}/nc-config
 # print_conf_summary()
 
 # Enable Makedist files.
-ADD_MAKEDIST()
-ENABLE_MAKEDIST(README.md COPYRIGHT RELEASE_NOTES.md INSTALL INSTALL.cmake test_prog.c lib_flags.am cmake CMakeLists.txt COMPILE.cmake.txt config.h.cmake.in cmake_uninstall.cmake.in netcdf-config-version.cmake.in netcdf-config.cmake.in FixBundle.cmake.in nc-config.cmake.in configure configure.ac install-sh config.h.in config.sub CTestConfig.cmake.in)
+# ADD_MAKEDIST()
+# ENABLE_MAKEDIST(README.md COPYRIGHT RELEASE_NOTES.md INSTALL INSTALL.cmake test_prog.c lib_flags.am cmake CMakeLists.txt COMPILE.cmake.txt config.h.cmake.in cmake_uninstall.cmake.in netcdf-config-version.cmake.in netcdf-config.cmake.in FixBundle.cmake.in nc-config.cmake.in configure configure.ac install-sh config.h.in config.sub CTestConfig.cmake.in)
 
 #####
 # Configure and print the libnetcdf.settings file.
@@ -1744,10 +1743,10 @@ FILE(COPY ${netCDF_SOURCE_DIR}/include/netcdf_meta.h
 # The EXPORT call is paired with one in liblib.
 set(ConfigPackageLocation ${CMAKE_INSTALL_LIBDIR}/cmake/netCDF)
 
-install(EXPORT netCDFTargets
-  DESTINATION ${ConfigPackageLocation}
-  COMPONENT headers
-  )
+# install(EXPORT netCDFTargets
+#   DESTINATION ${ConfigPackageLocation}
+#   COMPONENT headers
+#   )
 
 include(CMakePackageConfigHelpers)
 CONFIGURE_PACKAGE_CONFIG_FILE(
@@ -1789,4 +1788,4 @@ install(
 
 # CPack inclusion must come last.
 # INCLUDE(CPack)
-INCLUDE(CMakeInstallation.cmake)
+# INCLUDE(CMakeInstallation.cmake)

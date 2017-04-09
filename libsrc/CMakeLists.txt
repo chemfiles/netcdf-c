@@ -2,12 +2,12 @@
 # Copyright 2012-2013, see the COPYRIGHT file for more information.
 
 # Process these files with m4.
-SET(m4_SOURCES attr ncx putget t_ncxx)
-foreach (f ${m4_SOURCES})
-IF(HAVE_M4)
-  GEN_m4(${f})
-ENDIF()
-endforeach(f)
+# SET(m4_SOURCES attr ncx putget t_ncxx)
+# foreach (f ${m4_SOURCES})
+# IF(HAVE_M4)
+#   GEN_m4(${f})
+# ENDIF()
+# endforeach(f)
 
 SET(libsrc_SOURCES v1hpg.c putget.c attr.c nc3dispatch.c
   nc3internal.c var.c dim.c ncx.c lookup3.c ncio.c nc_hashmap.c)
