@@ -184,7 +184,7 @@ INCLUDE(GenerateExportHeader)
 # BUILD_SHARED_LIBS is provided by/used by
 # CMake directly.
 ##
-OPTION(BUILD_SHARED_LIBS "Configure netCDF as a shared library." ON)
+# OPTION(BUILD_SHARED_LIBS "Configure netCDF as a shared library." ON)
 IF(BUILD_SHARED_LIBS)
   SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 ENDIF()
@@ -196,13 +196,13 @@ OPTION(NC_FIND_SHARED_LIBS "Find dynamically-built versions of dependent librari
 # This seems reasonable enough to accomodate.  See
 # https://github.com/Unidata/netcdf-c/issues/228 for more info.
 ##
-OPTION(ENABLE_SHARED_LIBRARY_VERSION "Encode the library SO version in the file name of the generated library file." ON)
+OPTION(ENABLE_SHARED_LIBRARY_VERSION "Encode the library SO version in the file name of the generated library file." OFF)
 
 # Set some default linux gcc & apple compiler options for
 # debug builds.
 IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
   OPTION(ENABLE_COVERAGE_TESTS "Enable compiler flags needed to perform coverage tests." OFF)
-  OPTION(ENABLE_CONVERSION_WARNINGS "Enable warnings for implicit conversion from 64 to 32-bit datatypes." ON)
+  OPTION(ENABLE_CONVERSION_WARNINGS "Enable warnings for implicit conversion from 64 to 32-bit datatypes." OFF)
   OPTION(ENABLE_LARGE_FILE_TESTS "Enable large file tests." OFF)
 
   # Debugging flags
@@ -329,14 +329,14 @@ IF(MSVC)
 ENDIF()
 
 # Option to build netCDF Version 2
-OPTION (ENABLE_V2_API "Build netCDF Version 2." ON)
+OPTION(ENABLE_V2_API "Build netCDF Version 2." OFF)
 SET(BUILD_V2 ${ENABLE_V2_API})
 IF(NOT ENABLE_V2_API)
   SET(NO_NETCDF_2 ON)
 ENDIF()
 
 # Option to build utilities
-OPTION(BUILD_UTILITIES "Build ncgen, ncgen3, ncdump." ON)
+OPTION(BUILD_UTILITIES "Build ncgen, ncgen3, ncdump." OFF)
 
 # Option to use MMAP
 OPTION(ENABLE_MMAP "Use MMAP." OFF)
@@ -353,10 +353,10 @@ IF(ENABLE_MMAP)
 ENDIF()
 
 # Option to use examples.
-OPTION(ENABLE_EXAMPLES "Build Examples" ON)
+OPTION(ENABLE_EXAMPLES "Build Examples" OFF)
 
 # Option to use Diskless
-OPTION(ENABLE_DISKLESS "Build Diskless." ON)
+OPTION(ENABLE_DISKLESS "Build Diskless." OFF)
 IF(ENABLE_DISKLESS)
   SET(BUILD_DISKLESS ON)
   SET(USE_DISKLESS ON)
@@ -467,7 +467,7 @@ IF(ENABLE_HDF4)
   MESSAGE(STATUS "Found JPEG libraries: ${JPEG_LIB}")
 
   # Option to enable HDF4 file tests.
-  OPTION(ENABLE_HDF4_FILE_TESTS "Run HDF4 file tests.  This fetches sample HDF4 files from the Unidata ftp site to test with (requires curl)." ON)
+  OPTION(ENABLE_HDF4_FILE_TESTS "Run HDF4 file tests.  This fetches sample HDF4 files from the Unidata ftp site to test with (requires curl)." OFF)
   IF(ENABLE_HDF4_FILE_TESTS)
     FIND_PROGRAM(PROG_CURL NAMES curl)
     IF(PROG_CURL)
@@ -492,7 +492,7 @@ ENDIF()
 SET(NCIO_MINBLOCKSIZE 256 CACHE STRING "Minimum I/O Blocksize for netCDF classic and 64-bit offset format files.")
 
 # Build netCDF4
-OPTION(ENABLE_NETCDF_4 "Enable netCDF-4" ON)
+OPTION(ENABLE_NETCDF_4 "Enable netCDF-4" OFF)
 IF(ENABLE_NETCDF_4)
   SET(USE_NETCDF4 ON CACHE BOOL "")
   SET(ENABLE_NETCDF_4 ON CACHE BOOL "")
@@ -660,7 +660,7 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
       SET(USE_PARALLEL_POSIX ON)
     ENDIF()
 
-    OPTION(ENABLE_DYNAMIC_LOADING "Enable Dynamic Loading" ON)
+    OPTION(ENABLE_DYNAMIC_LOADING "Enable Dynamic Loading" OFF)
     IF(ENABLE_DYNAMIC_LOADING)
       SET(USE_LIBDL ON CACHE BOOL "")
     ENDIF()
@@ -706,7 +706,7 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
   ENDIF()
 
   SET(H5_USE_16_API 1)
-  OPTION(NC_ENABLE_HDF_16_API "Enable HDF5 1.6.x Compatibility(Required)" ON)
+  OPTION(NC_ENABLE_HDF_16_API "Enable HDF5 1.6.x Compatibility(Required)" OFF)
   IF(NOT NC_ENABLE_HDF_16_API)
     SET(H5_USE_16_API 0)
   ENDIF()
@@ -723,7 +723,7 @@ ENDIF(USE_HDF5 OR ENABLE_NETCDF_4)
 
 
 # Option to Build DAP Client
-OPTION(ENABLE_DAP "Enable DAP Client." ON)
+OPTION(ENABLE_DAP "Enable DAP Client." OFF)
 IF(ENABLE_DAP)
   SET(USE_DAP ON)
   FIND_PACKAGE(CURL)
@@ -781,7 +781,7 @@ ENDIF()
 
 # Option to Enable DAP long tests, remote tests.
 OPTION(ENABLE_DAP_LONG_TESTS "Enable DAP long tests." OFF)
-OPTION(ENABLE_DAP_REMOTE_TESTS "Enable DAP remote tests." ON)
+OPTION(ENABLE_DAP_REMOTE_TESTS "Enable DAP remote tests." OFF)
 
 IF(ENABLE_DAP_REMOTE_TESTS)
   OPTION(ENABLE_DAP_AUTH_TESTS "Enable DAP remote authorization tests." OFF)
@@ -804,7 +804,7 @@ ENDIF()
 # Option to use bundled XGetopt in place of getopt(). This is mostly useful
 # for MSVC builds. If not building utilities, getopt() isn't required at all.
 IF(MSVC)
-  OPTION(ENABLE_XGETOPT "Enable bundled XGetOpt instead of external getopt()." ON)
+  OPTION(ENABLE_XGETOPT "Enable bundled XGetOpt instead of external getopt()." OFF)
   IF(ENABLE_XGETOPT)
     SET(USE_X_GETOPT ON CACHE BOOL "")
   ENDIF()
@@ -829,7 +829,7 @@ ENDIF()
 ##
 # Enable Tests
 ##
-OPTION(ENABLE_TESTS "Enable basic tests, run with 'make test'." ON)
+OPTION(ENABLE_TESTS "Enable basic tests, run with 'make test'." OFF)
 IF(ENABLE_TESTS)
   SET(BUILD_TESTSETS ON CACHE BOOL "")
 
@@ -883,7 +883,7 @@ ENDIF()
 ###
 # Option to enable extreme numbers during testing.
 ###
-OPTION(ENABLE_EXTREME_NUMBERS "Enable extreme numbers during testing, such as MAX_INT-1" ON)
+OPTION(ENABLE_EXTREME_NUMBERS "Enable extreme numbers during testing, such as MAX_INT-1" OFF)
 IF(ENABLE_EXTREME_NUMBERS)
   SET(USE_EXTREME_NUMBERS ON)
 ENDIF()
@@ -909,7 +909,7 @@ ENDIF()
 
 # Linux specific large file support flags.
 # Modelled after check in CMakeLists.txt for hdf5.
-OPTION(ENABLE_LARGE_FILE_SUPPORT "Enable large file support." ON)
+OPTION(ENABLE_LARGE_FILE_SUPPORT "Enable large file support." OFF)
 IF(ENABLE_LARGE_FILE_SUPPORT)
   IF(MSVC)
     SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LARGEADDRESSAWARE")
