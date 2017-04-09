@@ -24,14 +24,14 @@ static struct NCPROTOCOLLIST {
     {NULL,NULL,0} /* Terminate search */
 };
 
-/* Define the default servers to ping in order;
-   make the order attempt to optimize
-   against future changes.
-*/
-static const char* default_servers[] = {
-"http://remotetest.unidata.ucar.edu",
-NULL
-};
+// /* Define the default servers to ping in order;
+//    make the order attempt to optimize
+//    against future changes.
+// */
+// static const char* default_servers[] = {
+// "http://remotetest.unidata.ucar.edu",
+// NULL
+// };
 
 /*
 static nc_type longtype = (sizeof(long) == sizeof(int)?NC_INT:NC_INT64);
@@ -59,9 +59,7 @@ NCDISPATCH_initialize(void)
 int
 NCDISPATCH_finalize(void)
 {
-    int status = NC_NOERR;
-    int i;
-    return status;
+    return NC_NOERR;
 }
 
 /* search list of servers and return first that succeeds when
@@ -145,12 +143,7 @@ Assumes that the path is known to be a url
 int
 NC_urlmodel(const char* path)
 {
-    int model = 0;
-    NCURI* tmpurl = NULL;
-    struct NCPROTOCOLLIST* protolist;
-
-    model = NC_FORMATX_DAP2;
-    return model;
+    return NC_FORMATX_DAP2;
 }
 
 #ifdef OBSOLETE

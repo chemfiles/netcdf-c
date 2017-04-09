@@ -234,7 +234,8 @@ fgrow2(const int fd, const off_t len)
 
 
   size_t file_len = nc_get_filelen(fd);
-  if(file_len < 0) return errno;
+  // file_len is an unsigned integer ...
+  // if(file_len < 0) return errno;
   if(len <= file_len)
     return NC_NOERR;
   {
@@ -328,9 +329,9 @@ px_pgin(ncio *const nciop,
 {
 	int status;
 	ssize_t nread;
-    size_t read_count = 0;
-    ssize_t bytes_xfered = 0;
-    void *p = vp;
+    // size_t read_count = 0;
+    // ssize_t bytes_xfered = 0;
+    // void *p = vp;
 #ifdef X_ALIGN
 	assert(offset % X_ALIGN == 0);
 	assert(extent % X_ALIGN == 0);

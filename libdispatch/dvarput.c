@@ -130,7 +130,7 @@ NCDEFAULT_put_vars(int ncid, int varid, const size_t * start,
    size_t vartypelen;
    int memtypelen;
    const char* value = (const char*)value0;
-   size_t numrecs;
+   // size_t numrecs;
    int nrecdims;                /* number of record dims for a variable */
    int is_recdim[NC_MAX_VAR_DIMS]; /* for variable's dimensions */
    size_t varshape[NC_MAX_VAR_DIMS];
